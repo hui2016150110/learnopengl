@@ -55,7 +55,7 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
         val cc = ByteBuffer.allocateDirect(mTextureCoors.size * 4)
         cc.order(ByteOrder.nativeOrder())
         mTextureBuffer = cc.asFloatBuffer()
-        mTextureBuffer.put(mVertexCoors)
+        mTextureBuffer.put(mTextureCoors)
         mTextureBuffer.position(0)
     }
 
@@ -93,7 +93,7 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
 
     private fun activateTexture() {
         //激活指定纹理单元
-        GLES20.glActiveTexture(GLES20.GL_ACTIVE_TEXTURE)
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         //绑定纹理ID到纹理单元
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,mTextureId)
         //将激活的纹理单元传递到着色器里面
