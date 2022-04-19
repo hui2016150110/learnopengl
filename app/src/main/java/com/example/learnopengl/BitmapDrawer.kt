@@ -85,6 +85,7 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
 
             mVertexPosHandler = GLES20.glGetAttribLocation(mProgram, "aPosition")
             mTexturePosHandler = GLES20.glGetAttribLocation(mProgram, "aCoordinate")
+            //获取uTexture的句柄
             mTextureHandler = GLES20.glGetAttribLocation(mProgram, "uTexture")
         }
         GLES20.glUseProgram(mProgram)
@@ -98,6 +99,7 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,mTextureId)
         //将激活的纹理单元传递到着色器里面
         GLES20.glUniform1i(mTextureHandler,0)
+
         //配置边缘过渡参数
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR.toFloat())
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR.toFloat())
@@ -131,8 +133,11 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
     }
 
     private fun getVertexShader(): String {
+                //顶点坐标
         return "attribute vec4 aPosition;" +
+                //纹理坐标
                 "attribute vec2 aCoordinate;" +
+                //用于传递纹理坐标给片元着色器，命名和片元着色器中的一致
                 "varying vec2 vCoordinate;" +
                 "void main() {" +
                 "  gl_Position = aPosition;" +
@@ -141,10 +146,14 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
     }
 
     private fun getFragmentShader(): String {
+                //配置float精度，使用了float数据一定要配置：lowp(低)/mediump(中)/highp(高)
         return "precision mediump float;" +
+                //从Java传递进入来的纹理单元
                 "uniform sampler2D uTexture;" +
+                //从顶点着色器传递进来的纹理坐标
                 "varying vec2 vCoordinate;" +
                 "void main() {" +
+                //根据纹理坐标，从纹理单元中取色
                 "  vec4 color = texture2D(uTexture, vCoordinate);" +
                 "  gl_FragColor = color;" +
                 "}"
@@ -163,6 +172,10 @@ class BitmapDrawer(private val mBitmap: Bitmap) : IDrawer {
     }
 
     override fun release() {
-
+        GLES20.glDisableVertexAttribArray(mVertexPosHandler)
+        GLES20.glDisableVertexAttribArray(mTexturePosHandler)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        GLES20.glDeleteTextures(1, intArrayOf(mTextureId), 0)
+        GLES20.glDeleteProgram(mProgram)
     }
 }
